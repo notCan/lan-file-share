@@ -18,11 +18,9 @@ if not exist "node_modules" (
 )
 
 if not exist ".env" (
-    echo .env dosyası bulunamadı. .env.example kopyalanıyor...
-    copy .env.example .env
-    echo .env oluşturuldu. Kullanıcı adı ve şifrenizi .env içinde düzenleyip tekrar çalıştırın.
-    pause
-    exit /b
+    echo [Bilgi] .env yok; ilk kullanıcıyı uygulama içinden Kayıt ol ile oluşturabilirsiniz.
+    echo İsteğe bağlı: .env.example kopyalayıp .env oluşturarak JWT_SECRET ve PORT ayarlayabilirsiniz.
+    echo.
 )
 
 echo IP adresi bulunuyor...
@@ -36,7 +34,7 @@ for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr "IPv4"') do (
 )
 set IP=!IP: =!
 
-for /f "delims=" %%P in ('node -e "require('dotenv').config();console.log(process.env.PORT||3000)"') do set PORT=%%P
+for /f "delims=" %%P in ('node -e "require('dotenv').config();console.log(process.env.PORT||3336)"') do set PORT=%%P
 set PORT=!PORT: =!
 
 set QR_URL=http://!IP!:!PORT!

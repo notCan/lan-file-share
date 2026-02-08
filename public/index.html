@@ -210,6 +210,8 @@
     .error-msg.visible {
       display: block;
     }
+    .login-switch { margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); }
+    .btn-link { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; font-size: inherit; }
 
     /* ——— Files view ——— */
     .files-header {
@@ -368,7 +370,7 @@
     <!-- Login -->
     <div id="view-login" class="view">
       <div class="login-wrap">
-        <div class="login-card">
+        <div id="login-card" class="login-card">
           <h1>LAN Dosya Paylaşım</h1>
           <p class="subtitle">Devam etmek için giriş yapın</p>
           <p id="login-error" class="error-msg"></p>
@@ -383,8 +385,30 @@
               <input type="password" id="password" name="password" required autocomplete="current-password"
                 placeholder="••••••••">
             </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                <input type="checkbox" id="rememberMe" checked> Beni hatırla
+              </label>
+            </div>
             <button type="submit" class="btn btn-primary" id="login-btn">Giriş yap</button>
           </form>
+          <p class="login-switch">Hesabınız yok mu? <button type="button" id="btn-show-register" class="btn-link">Kayıt ol</button></p>
+        </div>
+        <div id="register-card" class="login-card" style="display: none;">
+          <h1>Kayıt ol</h1>
+          <p id="register-error" class="error-msg"></p>
+          <form id="register-form">
+            <div class="form-group">
+              <label for="reg-username">Kullanıcı adı</label>
+              <input type="text" id="reg-username" required autocomplete="username" minlength="2" placeholder="Kullanıcı adı">
+            </div>
+            <div class="form-group">
+              <label for="reg-password">Şifre</label>
+              <input type="password" id="reg-password" required autocomplete="new-password" placeholder="Şifre">
+            </div>
+            <button type="submit" class="btn btn-primary" id="register-btn">Kayıt ol</button>
+          </form>
+          <p class="login-switch">Zaten hesabınız var mı? <button type="button" id="btn-show-login" class="btn-link">Giriş yap</button></p>
         </div>
       </div>
     </div>
@@ -447,7 +471,7 @@
 
     async function checkAuth() {
       try {
-        const r = await fetch('/api/files', opts);
+        const r = await fetch('/api/auth/me', opts);
         if (r.ok) {
           showView('files');
           loadFiles();
@@ -456,6 +480,50 @@
       } catch (_) { }
       showView('login');
     }
+
+    document.getElementById('btn-show-register').addEventListener('click', function () {
+      document.getElementById('login-card').style.display = 'none';
+      document.getElementById('register-card').style.display = 'block';
+      loginError.classList.remove('visible');
+      loginError.textContent = '';
+    });
+    document.getElementById('btn-show-login').addEventListener('click', function () {
+      document.getElementById('register-card').style.display = 'none';
+      document.getElementById('login-card').style.display = 'block';
+      document.getElementById('register-error').classList.remove('visible');
+      document.getElementById('register-error').textContent = '';
+    });
+    document.getElementById('register-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const regErr = document.getElementById('register-error');
+      regErr.textContent = '';
+      regErr.classList.remove('visible');
+      const btn = document.getElementById('register-btn');
+      btn.disabled = true;
+      try {
+        const r = await fetch('/api/auth/register', {
+          ...opts,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('reg-username').value.trim(),
+            password: document.getElementById('reg-password').value
+          })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (r.ok) {
+          showView('files');
+          loadFiles();
+        } else {
+          regErr.textContent = data.error || 'Kayıt olunamadı';
+          regErr.classList.add('visible');
+        }
+      } catch (_) {
+        regErr.textContent = 'Bağlantı hatası';
+        regErr.classList.add('visible');
+      }
+      btn.disabled = false;
+    });
 
     async function loadFiles() {
       filesLoading.style.display = 'block';
@@ -502,14 +570,18 @@
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
       try {
-        const r = await fetch('/api/login', {
+        const r = await fetch('/api/auth/login', {
           ...opts,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({
+            username,
+            password,
+            rememberMe: document.getElementById('rememberMe').checked
+          })
         });
         const data = await r.json().catch(() => ({}));
-        if (r.ok && data.success) {
+        if (r.ok && data.user) {
           showView('files');
           loadFiles();
         } else {
@@ -522,10 +594,12 @@
     });
 
     logoutBtn.addEventListener('click', async () => {
-      await fetch('/api/logout', { ...opts, method: 'POST' });
+      await fetch('/api/auth/logout', { ...opts, method: 'POST' });
       showView('login');
       loginForm.reset();
       showLoginError('');
+      document.getElementById('register-card').style.display = 'none';
+      document.getElementById('login-card').style.display = 'block';
     });
 
     checkAuth();

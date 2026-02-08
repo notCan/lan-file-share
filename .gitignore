@@ -10,6 +10,9 @@ dist/
 static-ip-backup.txt
 static-ip-temp.txt
 
+# User data
+data/
+
 # Shared files (user content; keep .gitkeep)
 shared/*
 !shared/.gitkeep
