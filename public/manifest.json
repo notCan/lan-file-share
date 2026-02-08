@@ -1,6 +1,6 @@
 {
-  "name": "LAN Dosya Paylaşım",
-  "short_name": "Dosya Paylaşım",
+  "name": "shareLAN",
+  "short_name": "shareLAN",
   "description": "LAN üzerinden dosya paylaşım",
   "start_url": "/",
   "display": "standalone",
