@@ -1,0 +1,20 @@
+# Dependencies and build
+node_modules/
+dist/
+
+# Environment and secrets
+.env
+.env.local
+
+# Static IP scripts (local state)
+static-ip-backup.txt
+static-ip-temp.txt
+
+# Shared files (user content; keep .gitkeep)
+shared/*
+!shared/.gitkeep
+
+# Logs and OS
+*.log
+.DS_Store
+Thumbs.db

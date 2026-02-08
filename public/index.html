@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAN Dosya Paylaşım</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #18181c;
+      --surface-hover: #1f1f24;
+      --border: #2a2a30;
+      --text: #e4e4e7;
+      --text-muted: #71717a;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --danger: #ef4444;
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 197, 94, 0.08), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(34, 197, 94, 0.04), transparent),
+        radial-gradient(ellipse 60% 40% at 0% 0%, rgba(34, 197, 94, 0.04), transparent);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ——— Login ——— */
+    .view {
+      display: none;
+      padding: 2rem;
+    }
+
+    .view.active {
+      display: block;
+      flex: 1;
+    }
+
+    .login-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      padding-left: max(2rem, env(safe-area-inset-left));
+      padding-right: max(2rem, env(safe-area-inset-right));
+      padding-bottom: max(2rem, env(safe-area-inset-bottom));
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .login-card h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .login-card .subtitle {
+      margin: 0 0 2rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    /* Login: mobilde daha ferah */
+    @media (max-width: 480px) {
+      .login-wrap {
+        padding: 1.25rem;
+        padding-left: max(1.25rem, env(safe-area-inset-left));
+        padding-right: max(1.25rem, env(safe-area-inset-right));
+        padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+        align-items: flex-start;
+        padding-top: max(3rem, env(safe-area-inset-top));
+      }
+      .login-card {
+        padding: 2rem 1.5rem;
+        max-width: none;
+      }
+      .login-card h1 {
+        font-size: 1.35rem;
+      }
+      .login-card .subtitle {
+        margin-bottom: 1.75rem;
+      }
+      #view-login .form-group {
+        margin-bottom: 1.5rem;
+      }
+      #view-login .form-group input {
+        padding: 0.85rem 1rem;
+        font-size: 16px; /* zoom önleme iOS */
+      }
+      #view-login .btn-primary {
+        margin-top: 0.75rem;
+        padding: 0.85rem 1rem;
+      }
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font: inherit;
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 0.5rem;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-msg {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      display: none;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    /* ——— Files view ——— */
+    .files-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .files-header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-logout {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+    }
+
+    .btn-logout:hover {
+      color: var(--text);
+      background: var(--surface-hover);
+      border-color: var(--text-muted);
+    }
+
+    .files-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .files-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .files-table th,
+    .files-table td {
+      padding: 1rem 1.25rem;
+      text-align: left;
+    }
+
+    .files-table th {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .files-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .files-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .files-table tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    .file-name {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .file-size {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .btn-download {
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .btn-download:hover {
+      background: var(--accent-hover);
+      color: #fff;
+    }
+
+    .empty-state {
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .loading {
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .loading::after {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-left: 0.5rem;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 640px) {
+
+      .files-table th:nth-child(2),
+      .files-table td:nth-child(2) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- Login -->
+    <div id="view-login" class="view">
+      <div class="login-wrap">
+        <div class="login-card">
+          <h1>LAN Dosya Paylaşım</h1>
+          <p class="subtitle">Devam etmek için giriş yapın</p>
+          <p id="login-error" class="error-msg"></p>
+          <form id="login-form">
+            <div class="form-group">
+              <label for="username">Kullanıcı adı</label>
+              <input type="text" id="username" name="username" required autocomplete="username"
+                placeholder="Kullanıcı adınız">
+            </div>
+            <div class="form-group">
+              <label for="password">Şifre</label>
+              <input type="password" id="password" name="password" required autocomplete="current-password"
+                placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary" id="login-btn">Giriş yap</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files -->
+    <div id="view-files" class="view">
+      <div class="files-header">
+        <h1>Paylaşılan dosyalar</h1>
+        <div class="header-actions">
+          <button type="button" class="btn btn-logout" id="logout-btn">Çıkış yap</button>
+        </div>
+      </div>
+      <div class="files-card">
+        <div id="files-loading" class="loading">Dosyalar yükleniyor…</div>
+        <div id="files-empty" class="empty-state" style="display: none;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5 19a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h2a2 2 0 012 2v2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2m0 0v2a2 2 0 01-2 2H9a2 2 0 01-2-2V9a2 2 0 012-2h2a2 2 0 012 2v2">
+            </path>
+          </svg>
+          <p>Henüz dosya yok.<br>Paylaşım klasörüne dosya ekleyin.</p>
+        </div>
+        <table id="files-table" class="files-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Dosya adı</th>
+              <th>Boyut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="files-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const viewLogin = document.getElementById('view-login');
+    const viewFiles = document.getElementById('view-files');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const filesLoading = document.getElementById('files-loading');
+    const filesEmpty = document.getElementById('files-empty');
+    const filesTable = document.getElementById('files-table');
+    const filesTbody = document.getElementById('files-tbody');
+
+    const opts = { credentials: 'include' };
+
+    function showView(name) {
+      viewLogin.classList.toggle('active', name === 'login');
+      viewFiles.classList.toggle('active', name === 'files');
+    }
+
+    function showLoginError(msg) {
+      loginError.textContent = msg || '';
+      loginError.classList.toggle('visible', !!msg);
+    }
+
+    async function checkAuth() {
+      try {
+        const r = await fetch('/api/files', opts);
+        if (r.ok) {
+          showView('files');
+          loadFiles();
+          return;
+        }
+      } catch (_) { }
+      showView('login');
+    }
+
+    async function loadFiles() {
+      filesLoading.style.display = 'block';
+      filesEmpty.style.display = 'none';
+      filesTable.style.display = 'none';
+      try {
+        const r = await fetch('/api/files', opts);
+        const data = await r.json();
+        filesLoading.style.display = 'none';
+        if (!r.ok) {
+          showView('login');
+          return;
+        }
+        const files = data.files || [];
+        if (files.length === 0) {
+          filesEmpty.style.display = 'block';
+        } else {
+          filesTable.style.display = 'table';
+          filesTbody.innerHTML = files.map(f => `
+            <tr>
+              <td class="file-name">${escapeHtml(f.name)}</td>
+              <td class="file-size">${escapeHtml(f.size)}</td>
+              <td><a href="/api/download/${encodeURIComponent(f.name)}" class="btn btn-download" download>İndir</a></td>
+            </tr>
+          `).join('');
+        }
+      } catch (_) {
+        filesLoading.style.display = 'none';
+        filesEmpty.style.display = 'block';
+        filesTbody.innerHTML = '';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showLoginError('');
+      loginBtn.disabled = true;
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      try {
+        const r = await fetch('/api/login', {
+          ...opts,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (r.ok && data.success) {
+          showView('files');
+          loadFiles();
+        } else {
+          showLoginError(data.error || 'Giriş yapılamadı.');
+        }
+      } catch (_) {
+        showLoginError('Bağlantı hatası.');
+      }
+      loginBtn.disabled = false;
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/api/logout', { ...opts, method: 'POST' });
+      showView('login');
+      loginForm.reset();
+      showLoginError('');
+    });
+
+    checkAuth();
+  </script>
+</body>
+
+</html>
